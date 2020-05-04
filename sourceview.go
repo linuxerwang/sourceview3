@@ -2,6 +2,7 @@ package sourceview
 
 // #cgo pkg-config: gtksourceview-3.0
 // #include <gtksourceview/gtksourcebuffer.h>
+// #include <gtksourceview/gtksourcegutter.h>
 // #include <gtksourceview/gtksourcelanguage.h>
 // #include <gtksourceview/gtksourcelanguagemanager.h>
 // #include <gtksourceview/gtksourceview.h>
@@ -19,21 +20,78 @@ var errNilPtr = errors.New("cgo returned unexpected nil pointer")
 
 func init() {
 	tm := []glib.TypeMarshaler{
-		{glib.Type(C.gtk_source_view_get_type()), marshalSourceView},
 		{glib.Type(C.gtk_source_buffer_get_type()), marshalSourceBuffer},
+		{glib.Type(C.gtk_source_gutter_get_type()), marshalSourceGutter},
 		{glib.Type(C.gtk_source_language_get_type()), marshalSourceLanguage},
 		{glib.Type(C.gtk_source_language_manager_get_type()), marshalSourceLanguageManager},
+		{glib.Type(C.gtk_source_view_get_type()), marshalSourceView},
 	}
 	glib.RegisterGValueMarshalers(tm)
 
-	gtk.WrapMap["GtkSourceView"] = marshalSourceView
-	gtk.WrapMap["GtkSourceBuffer"] = marshalSourceBuffer
-	gtk.WrapMap["GtkSourceLanguage"] = marshalSourceLanguage
-	gtk.WrapMap["GtkSourceLanguageManager"] = marshalSourceLanguageManager
+	gtk.WrapMap["GtkSourceView"] = wrapSourceView
+	gtk.WrapMap["GtkSourceBuffer"] = wrapSourceBuffer
+	gtk.WrapMap["GtkSourceGutter"] = wrapSourceGutter
+	gtk.WrapMap["GtkSourceLanguage"] = wrapSourceLanguage
+	gtk.WrapMap["GtkSourceLanguageManager"] = wrapSourceLanguageManager
 }
 
+func gbool(b bool) C.gboolean {
+	if b {
+		return C.gboolean(1)
+	}
+	return C.gboolean(0)
+}
+
+/*
+ * GtkSourceGutter
+ */
+
+// SourceGutter is a representation of GtkSourceGutter.
+type SourceGutter struct {
+	*glib.Object
+}
+
+// native returns a pointer to the underlying GtkSourceGutter.
+func (v *SourceGutter) native() *C.GtkSourceGutter {
+	if v == nil || v.GObject == nil {
+		return nil
+	}
+	p := unsafe.Pointer(v.GObject)
+	return C.toGtkSourceGutter(p)
+}
+
+func marshalSourceGutter(p uintptr) (interface{}, error) {
+	c := C.g_value_get_object((*C.GValue)(unsafe.Pointer(p)))
+	obj := glib.Take(unsafe.Pointer(c))
+	return wrapSourceGutter(obj), nil
+}
+
+func wrapSourceGutter(obj *glib.Object) *SourceGutter {
+	return &SourceGutter{obj}
+}
+
+/*
+ * GtkSourceView
+ */
+
+// SourceView is a representation of GtkSourceView.
 type SourceView struct {
 	gtk.Container
+}
+
+// SetHighlightCurrentLine is a wrapper around gtk_source_view_set_highlight_current_line().
+func (v *SourceView) SetHighlightCurrentLine(highlight bool) {
+	C.gtk_source_view_set_highlight_current_line(v.native(), gbool(highlight))
+}
+
+// SetShowLineNumbers is a wrapper around gtk_source_view_set_show_line_numbers().
+func (v *SourceView) SetShowLineNumbers(show bool) {
+	C.gtk_source_view_set_show_line_numbers(v.native(), gbool(show))
+}
+
+// SetShowRightMargin is a wrapper around gtk_source_view_get_show_right_margin().
+func (v *SourceView) SetShowRightMargin() {
+	C.gtk_source_view_get_show_right_margin(v.native())
 }
 
 // native returns a pointer to the underlying GtkSourceView.
@@ -90,6 +148,20 @@ func (v *SourceView) GetBuffer() (*SourceBuffer, error) {
 	return wrapSourceBuffer(glib.Take(unsafe.Pointer(c))), nil
 }
 
+// GetGutter is a wrapper around gtk_source_view_get_gutter().
+func (v *SourceView) GetGutter(wt gtk.TextWindowType) (*SourceGutter, error) {
+	c := C.gtk_source_view_get_gutter(v.native(), C.GtkTextWindowType(wt))
+	if c == nil {
+		return nil, errNilPtr
+	}
+	return wrapSourceGutter(glib.Take(unsafe.Pointer(c))), nil
+}
+
+/*
+ * GtkSourceBuffer
+ */
+
+// SourceBuffer is a representation of GtkSourceBuffer.
 type SourceBuffer struct {
 	*glib.Object
 }
@@ -122,7 +194,7 @@ func wrapSourceBuffer(obj *glib.Object) *SourceBuffer {
 	return &SourceBuffer{obj}
 }
 
-// SourceBufferNew() is a wrapper around gtk_text_buffer_new().
+// SourceBufferNew is a wrapper around gtk_text_buffer_new().
 func SourceBufferNew() (*SourceBuffer, error) {
 	c := C.gtk_text_buffer_new(nil)
 	if c == nil {
@@ -133,6 +205,7 @@ func SourceBufferNew() (*SourceBuffer, error) {
 	return e, nil
 }
 
+// SourceBufferNewWithLanguage is a wrapper around gtk_source_buffer_new_with_language().
 func SourceBufferNewWithLanguage(l *SourceLanguage) (*SourceBuffer, error) {
 	c := C.gtk_source_buffer_new_with_language(l.native())
 	if c == nil {
@@ -143,6 +216,7 @@ func SourceBufferNewWithLanguage(l *SourceLanguage) (*SourceBuffer, error) {
 	return e, nil
 }
 
+// SetText is a wrapper around gtk_text_buffer_set_text().
 func (v *SourceBuffer) SetText(text string) {
 	cstr := C.CString(text)
 	defer C.free(unsafe.Pointer(cstr))
@@ -150,10 +224,16 @@ func (v *SourceBuffer) SetText(text string) {
 		C.gint(len(text)))
 }
 
+// SetLanguage is a wrapper around gtk_source_buffer_set_language().
 func (v *SourceBuffer) SetLanguage(l *SourceLanguage) {
 	C.gtk_source_buffer_set_language(v.native(), l.native())
 }
 
+/*
+ * GtkSourceLanguageManager
+ */
+
+// SourceLanguageManager is a representation of GtkSourceLanguageManager.
 type SourceLanguageManager struct {
 	*glib.Object
 }
@@ -177,7 +257,7 @@ func wrapSourceLanguageManager(obj *glib.Object) *SourceLanguageManager {
 	return &SourceLanguageManager{obj}
 }
 
-// SourceLanguageManagerNew() is a wrapper around gtk_text_buffer_new().
+// SourceLanguageManagerNew is a wrapper around gtk_text_buffer_new().
 func SourceLanguageManagerNew() (*SourceLanguageManager, error) {
 	c := C.gtk_source_language_manager_new()
 	if c == nil {
@@ -188,6 +268,7 @@ func SourceLanguageManagerNew() (*SourceLanguageManager, error) {
 	return e, nil
 }
 
+// SourceLanguageManagerGetDefault is a wrapper around gtk_source_language_manager_get_default().
 func SourceLanguageManagerGetDefault() (*SourceLanguageManager, error) {
 	c := C.gtk_source_language_manager_get_default()
 	if c == nil {
@@ -198,6 +279,7 @@ func SourceLanguageManagerGetDefault() (*SourceLanguageManager, error) {
 	return e, nil
 }
 
+// GetLanguage is a wrapper around gtk_source_language_manager_get_language().
 func (v *SourceLanguageManager) GetLanguage(id string) (*SourceLanguage, error) {
 	cstr := C.CString(id)
 	defer C.free(unsafe.Pointer(cstr))
@@ -208,6 +290,11 @@ func (v *SourceLanguageManager) GetLanguage(id string) (*SourceLanguage, error) 
 	return wrapSourceLanguage(glib.Take(unsafe.Pointer(c))), nil
 }
 
+/*
+ * GtkSourceLanguage
+ */
+
+// SourceLanguage is a representation of GtkSourceLanguage.
 type SourceLanguage struct {
 	*glib.Object
 }

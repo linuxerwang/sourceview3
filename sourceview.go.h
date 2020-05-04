@@ -24,6 +24,12 @@ toGtkSourceBuffer(void *p)
 	return (GTK_SOURCE_BUFFER(p));
 }
 
+static GtkSourceGutter *
+toGtkSourceGutter(void *p)
+{
+	return (GTK_SOURCE_GUTTER(p));
+}
+
 static GtkSourceLanguageManager *
 toGtkSourceLanguageManager(void *p)
 {
