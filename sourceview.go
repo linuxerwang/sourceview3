@@ -163,7 +163,7 @@ func (v *SourceView) GetGutter(wt gtk.TextWindowType) (*SourceGutter, error) {
 
 // SourceBuffer is a representation of GtkSourceBuffer.
 type SourceBuffer struct {
-	*glib.Object
+	gtk.TextBuffer
 }
 
 // native returns a pointer to the underlying GtkSourceBuffer.
@@ -191,7 +191,7 @@ func marshalSourceBuffer(p uintptr) (interface{}, error) {
 }
 
 func wrapSourceBuffer(obj *glib.Object) *SourceBuffer {
-	return &SourceBuffer{obj}
+	return &SourceBuffer{gtk.TextBuffer{obj}}
 }
 
 // SourceBufferNew is a wrapper around gtk_text_buffer_new().
