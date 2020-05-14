@@ -229,6 +229,26 @@ func (v *SourceBuffer) SetLanguage(l *SourceLanguage) {
 	C.gtk_source_buffer_set_language(v.native(), l.native())
 }
 
+// BeginNotUndoableAction is a wrapper around gtk_source_buffer_begin_not_undoable_action().
+func (v *SourceBuffer) BeginNotUndoableAction() {
+	C.gtk_source_buffer_begin_not_undoable_action(v.native())
+}
+
+// EndNotUndoableAction is a wrapper around gtk_source_buffer_end_not_undoable_action().
+func (v *SourceBuffer) EndNotUndoableAction() {
+	C.gtk_source_buffer_end_not_undoable_action(v.native())
+}
+
+// GetMaxUndoLevels is a wrapper around gtk_source_buffer_get_max_undo_levels().
+func (v *SourceBuffer) GetMaxUndoLevels() {
+	C.gtk_source_buffer_get_max_undo_levels(v.native())
+}
+
+// SetMaxUndoLevels is a wrapper around gtk_source_buffer_set_max_undo_levels().
+func (v *SourceBuffer) SetMaxUndoLevels(levels int) {
+	C.gtk_source_buffer_set_max_undo_levels(v.native(), C.gint(levels))
+}
+
 /*
  * GtkSourceLanguageManager
  */
