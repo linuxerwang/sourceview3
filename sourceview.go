@@ -76,7 +76,7 @@ func wrapSourceGutter(obj *glib.Object) *SourceGutter {
 
 // SourceView is a representation of GtkSourceView.
 type SourceView struct {
-	gtk.Container
+	gtk.TextView
 }
 
 // SetHighlightCurrentLine is a wrapper around gtk_source_view_set_highlight_current_line().
@@ -119,7 +119,7 @@ func marshalSourceView(p uintptr) (interface{}, error) {
 }
 
 func wrapSourceView(obj *glib.Object) *SourceView {
-	return &SourceView{gtk.Container{gtk.Widget{glib.InitiallyUnowned{obj}}}}
+	return &SourceView{gtk.TextView{gtk.Container{gtk.Widget{glib.InitiallyUnowned{obj}}}}}
 }
 
 // SourceViewNew is a wrapper around gtk_source_view_new().
