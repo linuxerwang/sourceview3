@@ -1,5 +1,6 @@
 package sourceview
 
+// #include <stdlib.h>
 // #cgo pkg-config: gtksourceview-3.0
 // #include <gtksourceview/gtksourcebuffer.h>
 // #include <gtksourceview/gtksourcegutter.h>
